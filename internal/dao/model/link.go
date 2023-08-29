@@ -1,14 +1,18 @@
 package model
 
-import "time"
+import (
+	"gopkg.in/guregu/null.v4"
+)
 
 const LinkTable = "Links"
 
 type Link struct {
-	ID        uint      `json:"id"`         // 链接ID
-	Title     string    `json:"title"`      // 链接标题
-	URL       string    `json:"url"`        // 链接URL
-	OwnerID   uint      `json:"owner_id"`   // 拥有者ID
-	CreatedAt time.Time `json:"created_at"` // 创建时间
-	UpdatedAt time.Time `json:"updated_at"` // 更新时间
+	ID        uint      `json:"ID"` //ID
+	Active    bool      `json:"active"`
+	Comment   string    `json:"comment"`
+	EndTime   null.Time `json:"end_time"`
+	Origin    string    `json:"origin"`
+	Short     string    `json:"short"`
+	StartTime null.Time `json:"start_time"`
+	OwnerID   uint      `json:"owner_id"`
 }
