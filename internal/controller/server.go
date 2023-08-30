@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"errors"
 	"go-svc-tpl/api/dto"
 	"go-svc-tpl/internal/dao/model"
 	"net/http"
 
+	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -50,6 +52,20 @@ func (c *ServerController) Link(ctx *gin.Context, req *dto.ServerLinkReq) error 
 }
 
 func (c *ServerController) Veri(ctx *gin.Context, req *dto.ServerVeriReq) error {
-	//no
-	return nil
+	// 获取验证码ID
+	id := req.Target
+
+	// 判断验证码ID是否存在
+	if !captcha.Reload(id) {
+		return errors.New("invalid captcha id")
+	}
+
+	// 设置响应头为图片类型
+	ctx.Header("Content-Type", "image/png")
+
+	// 将验证码图片写入响应体
+	err := captcha.WriteImage(ctx.Writer, id, captcha.StdWidth, captcha.StdHeight)
+
+	// 返回错误信息或nil
+	return err
 }

@@ -1,12 +1,15 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"go-svc-tpl/api/dto"
 	"go-svc-tpl/internal/dao"
 	"go-svc-tpl/internal/dao/model"
 	"regexp"
 
+	"github.com/dchest/captcha"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -65,15 +68,55 @@ func (c *UserController) Register(ctx *gin.Context, req *dto.UserRegisterReq) er
 
 // GetVeri
 func (c *UserController) GetVeri(ctx *gin.Context) (*dto.GetVeriResp, error) {
-	//no
-	return nil, nil
+	// 生成验证码ID
+	id := captcha.New()
+
+	// 拼接验证码图片地址
+	url := fmt.Sprintf("/captcha/%s.png", id)
+
+	// 创建GetVeriResp结构体实例
+	resp := &dto.GetVeriResp{
+		CAPTCHAID:  id,
+		CAPTCHAURL: url,
+	}
+
+	// 返回响应结构体和nil
+	return resp, nil
+
 }
 
 // Login
 func (c *UserController) Login(ctx *gin.Context, req *dto.UserLoginReq) error {
-	//no
-	return nil
+	// 验证用户输入的验证码是否正确
+	if !captcha.VerifyString(req.CAPTCHAID, req.CAPTCHAValue) {
+		return errors.New("invalid captcha value")
+	}
+	newUser := &model.User{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+	// 从数据库中查询用户信息
+	var user model.User
+	err := dao.DB(ctx).First(&user, newUser).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			fmt.Println("Short is not duplicate. You can insert.")
+		}
+		return err
+	}
 
+	// 验证用户名和密码是否匹配
+	if user.Password != req.Password {
+		return errors.New("invalid email or password")
+	}
+
+	// 设置登录状态，生成并设置cookie
+	session := sessions.Default(ctx)
+	session.Set("user_id", user.ID)
+	session.Save()
+
+	// 返回nil表示成功登录
+	return nil
 }
 
 // GetInfo
