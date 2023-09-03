@@ -1,9 +1,10 @@
 package route
 
 import (
-	"github.com/gin-gonic/gin"
 	"go-svc-tpl/api/dto"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Ping(c *gin.Context) {
@@ -16,5 +17,20 @@ func Ping(c *gin.Context) {
 
 func SetupRouter(r *gin.RouterGroup) {
 	r.GET("/ping", Ping)
-	setupFooController(r)
+	r.POST("/register", Register)
+	r.POST("/login", Login)
+
+	setupUserController(r)
+}
+
+func Register(ctx *gin.Context) {
+	// 注册
+	// ctx.JSON(http.StatusOK, dto.Resp{
+	// 	Code: http.StatusOK,
+	// 	Msg:  "success",
+	// 	Data: "register success",)
+}
+
+func Login(ctx *gin.Context) {
+	// 登录
 }
